@@ -20,11 +20,16 @@ async function fetchNews(category) {
     showLoading(true);
     errorState.classList.add('hidden');
 
-    const url = `https://newsdata.io/api/1/news?apikey=${API_KEY}&country=ph&language=en&prioritydomain=top&domainurl=news.abs-cbn.com&category=${category}`;
+    // FIXED: Removed 'domainurl' which was causing Error 422.
+    // We stick to 'country=ph' to get all major local news (ABS-CBN, GMA, etc.)
+    const url = `https://newsdata.io/api/1/news?apikey=${API_KEY}&country=ph&language=en&prioritydomain=top&category=${category}`;
 
     try {
         const response = await fetch(url);
         
+        if (response.status === 422) {
+            throw new Error("Invalid Parameter in URL");
+        }
         if (response.status === 401 || response.status === 403) {
             throw new Error("Invalid API Key or Limit Reached.");
         }
