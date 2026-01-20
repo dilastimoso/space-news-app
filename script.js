@@ -10,24 +10,25 @@ const noResults = document.getElementById('noResults');
 let currentArticles = [];
 
 document.addEventListener('DOMContentLoaded', () => {
-    fetchNews('Philippines');
+    fetchNews('general');
 });
 
 searchInput.addEventListener('input', (e) => filterNews(e.target.value));
 categorySelect.addEventListener('change', (e) => fetchNews(e.target.value));
 
-async function fetchNews(query) {
+async function fetchNews(category) {
     showLoading(true);
     errorState.classList.add('hidden');
 
-    const timestamp = new Date().getTime();
-    const url = `https://gnews.io/api/v4/search?q=${query}&lang=en&apikey=${API_KEY}&_=${timestamp}`;
+    // Switched to 'top-headlines' which is more stable for the Free Tier
+    // Added 'country=ph' to get local Philippines news as requested
+    const url = `https://gnews.io/api/v4/top-headlines?category=${category.toLowerCase()}&lang=en&country=ph&apikey=${API_KEY}`;
 
     try {
         const response = await fetch(url);
         
         if (response.status === 403) {
-            throw new Error("API Limit Reached. Please wait a moment.");
+            throw new Error("Plan Limit Reached or CORS blocked. Please upgrade plan.");
         }
         if (response.status === 429) {
             throw new Error("Too many requests. Please wait 1 minute.");
@@ -38,6 +39,7 @@ async function fetchNews(query) {
 
         const data = await response.json();
         
+        // Hide loading immediately after data is received
         showLoading(false);
 
         if (!data.articles) {
