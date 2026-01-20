@@ -20,9 +20,7 @@ async function fetchNews(category) {
     showLoading(true);
     errorState.classList.add('hidden');
 
-    // FIXED: Removed 'domainurl' which was causing Error 422.
-    // We stick to 'country=ph' to get all major local news (ABS-CBN, GMA, etc.)
-    const url = `https://newsdata.io/api/1/news?apikey=${API_KEY}&country=ph&language=en&prioritydomain=top&category=${category}`;
+    const url = `https://newsdata.io/api/1/news?apikey=${API_KEY}&country=ph&language=en&category=${category}`;
 
     try {
         const response = await fetch(url);
