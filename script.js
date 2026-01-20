@@ -1,4 +1,4 @@
-const API_KEY = '1e50933ed1437b06ba9abbbfeefeedf8'; 
+const API_KEY = '1e50933ed1437b06ba9abbbfeefeedf8';
 
 const newsGrid = document.getElementById('newsGrid');
 const loadingState = document.getElementById('loadingState');
@@ -10,7 +10,7 @@ const noResults = document.getElementById('noResults');
 let currentArticles = [];
 
 document.addEventListener('DOMContentLoaded', () => {
-    if (API_KEY === 'PASTE_YOUR_API_KEY_HERE' || API_KEY === '') {
+    if (API_KEY.includes('PASTE') || API_KEY === '') {
         showError("Missing API Key");
         return;
     }
@@ -24,13 +24,17 @@ async function fetchNews(category) {
     showLoading(true);
     errorState.classList.add('hidden');
 
-    const url = `https://gnews.io/api/v4/top-headlines?category=${category}&lang=en&country=ph&apikey=${API_KEY}`;
+    const cleanKey = API_KEY.trim();
+    const url = `https://gnews.io/api/v4/top-headlines?category=${category}&lang=en&country=ph&apikey=${cleanKey}`;
 
     try {
         const response = await fetch(url);
         
         if (response.status === 403) {
-            throw new Error("Invalid API Key or Daily Limit Reached.");
+            throw new Error("API Key Invalid or Limit Reached");
+        }
+        if (response.status === 429) {
+            throw new Error("Too Many Requests");
         }
         if (!response.ok) {
             throw new Error(`Server Error: ${response.status}`);
@@ -38,6 +42,10 @@ async function fetchNews(category) {
 
         const data = await response.json();
         
+        if (!data.articles) {
+            throw new Error("No articles data found");
+        }
+
         currentArticles = data.articles;
         renderNews(currentArticles);
         showLoading(false);
