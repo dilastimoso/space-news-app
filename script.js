@@ -10,10 +10,6 @@ const noResults = document.getElementById('noResults');
 let currentArticles = [];
 
 document.addEventListener('DOMContentLoaded', () => {
-    if (API_KEY.includes('PASTE') || API_KEY === '') {
-        showError("Missing API Key");
-        return;
-    }
     fetchNews('general');
 });
 
@@ -24,8 +20,7 @@ async function fetchNews(category) {
     showLoading(true);
     errorState.classList.add('hidden');
 
-    const cleanKey = API_KEY.trim();
-    const url = `https://gnews.io/api/v4/top-headlines?category=${category}&lang=en&country=ph&apikey=${cleanKey}`;
+    const url = `https://gnews.io/api/v4/top-headlines?category=${category}&lang=en&country=ph&apikey=${API_KEY}`;
 
     try {
         const response = await fetch(url);
