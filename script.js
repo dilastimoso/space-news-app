@@ -1,109 +1,50 @@
-const API_KEY = '1e50933ed1437b06ba9abbbfeefeedf8';
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Brief | Real-Time News</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
 
-const newsGrid = document.getElementById('newsGrid');
-const loadingState = document.getElementById('loadingState');
-const errorState = document.getElementById('errorState');
-const searchInput = document.getElementById('searchInput');
-const categorySelect = document.getElementById('categorySelect');
-const noResults = document.getElementById('noResults');
+    <header class="app-header">
+        <div class="container header-content">
+            <div class="logo">
+                <h1>🌍 Global Brief</h1>
+            </div>
+            <div class="controls">
+                <select id="categorySelect">
+                    <option value="Philippines">General</option>
+                    <option value="Technology">Technology</option>
+                    <option value="Business">Business</option>
+                    <option value="Sports">Sports</option>
+                    <option value="Entertainment">Entertainment</option>
+                </select>
+                <input type="text" id="searchInput" placeholder="Search headlines...">
+            </div>
+        </div>
+    </header>
 
-let currentArticles = [];
+    <main class="container">
+        <div id="loadingState" class="loading">
+            <div class="spinner"></div>
+            <p>Fetching live news...</p>
+        </div>
 
-document.addEventListener('DOMContentLoaded', () => {
-    fetchNews('Philippines News');
-});
+        <div id="errorState" class="error-box hidden"></div>
 
-searchInput.addEventListener('input', (e) => filterNews(e.target.value));
-categorySelect.addEventListener('change', (e) => fetchNews(e.target.value));
+        <section>
+            <div id="newsGrid" class="news-grid hidden"></div>
+            <div id="noResults" class="hidden">No stories found matching your search.</div>
+        </section>
+    </main>
 
-async function fetchNews(query) {
-    showLoading(true);
-    errorState.classList.add('hidden');
+    <footer>
+        <p>Powered by GNews API • Module 1 Summative Exam</p>
+    </footer>
 
-   
-    const timestamp = new Date().getTime();
-    const url = `https://gnews.io/api/v4/search?q=${query}&lang=en&sortby=publishedAt&apikey=${API_KEY}&_=${timestamp}`;
-
-    try {
-        const response = await fetch(url);
-        
-        if (response.status === 403) {
-            throw new Error("API Limit Reached. Please wait a moment and refresh.");
-        }
-        if (response.status === 429) {
-            throw new Error("Too many requests. Please wait 1 minute.");
-        }
-        if (!response.ok) {
-            throw new Error(`Server Error: ${response.status}`);
-        }
-
-        const data = await response.json();
-        
-        if (!data.articles) {
-            throw new Error("No articles data found");
-        }
-
-        currentArticles = data.articles;
-        renderNews(currentArticles);
-        showLoading(false);
-
-    } catch (error) {
-        showLoading(false);
-        showError(error.message);
-    }
-}
-
-function renderNews(articles) {
-    newsGrid.innerHTML = '';
-    
-    if (articles.length === 0) {
-        noResults.classList.remove('hidden');
-        return;
-    } else {
-        noResults.classList.add('hidden');
-    }
-
-    articles.forEach(article => {
-        const img = article.image || 'https://via.placeholder.com/400x200?text=No+Image+Available';
-        const date = new Date(article.publishedAt).toLocaleDateString();
-
-        const card = `
-            <article class="news-card">
-                <img src="${img}" alt="News Image" class="card-img">
-                <div class="card-body">
-                    <span class="card-date">${date}</span>
-                    <h3 class="card-title">${article.title}</h3>
-                    <p class="card-desc">${article.description || "Click 'Read Full Story' for more details."}</p>
-                    <a href="${article.url}" target="_blank" class="btn">Read Full Story</a>
-                </div>
-            </article>
-        `;
-        newsGrid.innerHTML += card;
-    });
-}
-
-function filterNews(query) {
-    const term = query.toLowerCase();
-    const filtered = currentArticles.filter(article => 
-        article.title.toLowerCase().includes(term) || 
-        (article.description && article.description.toLowerCase().includes(term))
-    );
-    renderNews(filtered);
-}
-
-function showLoading(isLoading) {
-    if (isLoading) {
-        loadingState.classList.remove('hidden');
-        newsGrid.classList.add('hidden');
-    } else {
-        loadingState.classList.add('hidden');
-        newsGrid.classList.remove('hidden');
-    }
-}
-
-function showError(message) {
-    loadingState.classList.add('hidden');
-    newsGrid.classList.add('hidden');
-    errorState.textContent = message;
-    errorState.classList.remove('hidden');
-}
+    <script src="script.js"></script>
+</body>
+</html>
