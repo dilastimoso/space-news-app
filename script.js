@@ -1,52 +1,104 @@
-:root {
-    --primary: #cc0000;
-    --bg: #f3f4f6;
-    --text: #111827;
+const API_KEY = '1e50933ed1437b06ba9abbbfeefeedf8'; 
+
+const newsGrid = document.getElementById('newsGrid');
+const loadingState = document.getElementById('loadingState');
+const errorState = document.getElementById('errorState');
+const searchInput = document.getElementById('searchInput');
+const categorySelect = document.getElementById('categorySelect');
+const noResults = document.getElementById('noResults');
+
+let currentArticles = [];
+
+document.addEventListener('DOMContentLoaded', () => {
+    if (API_KEY === 'PASTE_YOUR_API_KEY_HERE' || API_KEY === '') {
+        showError("Missing API Key");
+        return;
+    }
+    fetchNews('general');
+});
+
+searchInput.addEventListener('input', (e) => filterNews(e.target.value));
+categorySelect.addEventListener('change', (e) => fetchNews(e.target.value));
+
+async function fetchNews(category) {
+    showLoading(true);
+    errorState.classList.add('hidden');
+
+    const url = `https://gnews.io/api/v4/top-headlines?category=${category}&lang=en&country=ph&apikey=${API_KEY}`;
+
+    try {
+        const response = await fetch(url);
+        
+        if (response.status === 403) {
+            throw new Error("Invalid API Key or Daily Limit Reached.");
+        }
+        if (!response.ok) {
+            throw new Error(`Server Error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        
+        currentArticles = data.articles;
+        renderNews(currentArticles);
+        showLoading(false);
+
+    } catch (error) {
+        showLoading(false);
+        showError(error.message);
+    }
 }
 
-* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+function renderNews(articles) {
+    newsGrid.innerHTML = '';
+    
+    if (articles.length === 0) {
+        noResults.classList.remove('hidden');
+        return;
+    } else {
+        noResults.classList.add('hidden');
+    }
 
-body { background: var(--bg); color: var(--text); padding-bottom: 50px; }
+    articles.forEach(article => {
+        const img = article.image || 'https://via.placeholder.com/400x200?text=No+Image+Available';
+        const date = new Date(article.publishedAt).toLocaleDateString();
 
-.container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
-
-.app-header { background: white; padding: 1rem 0; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; }
-.header-content { display: flex; flex-direction: column; align-items: center; gap: 1rem; }
-.logo h1 { color: var(--primary); font-weight: 800; letter-spacing: -1px; }
-
-.controls { display: flex; gap: 10px; width: 100%; max-width: 600px; }
-select, input { padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem; }
-input { flex-grow: 1; }
-
-.news-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; margin-top: 20px; }
-
-.news-card { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: transform 0.2s; display: flex; flex-direction: column; }
-.news-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
-
-.card-img { width: 100%; height: 180px; object-fit: cover; background: #eee; }
-.card-body { padding: 15px; display: flex; flex-direction: column; flex-grow: 1; }
-.card-date { font-size: 0.8rem; color: #888; margin-bottom: 5px; }
-.card-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 10px; line-height: 1.4; }
-.card-desc { font-size: 0.9rem; color: #555; margin-bottom: 15px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-.btn { margin-top: auto; display: inline-block; background: var(--text); color: white; padding: 8px 16px; text-decoration: none; border-radius: 4px; text-align: center; font-size: 0.9rem; }
-.btn:hover { background: var(--primary); }
-
-.hidden { display: none !important; }
-.loading { text-align: center; padding: 40px; color: #666; }
-.spinner { width: 40px; height: 40px; border: 4px solid #ddd; border-top-color: var(--primary); border-radius: 50%; animation: spin 1s infinite; margin: 0 auto 10px; }
-@keyframes spin { to { transform: rotate(360deg); } }
-
-.error-box {
-    background-color: #fee2e2;
-    border: 1px solid #ef4444;
-    color: #b91c1c;
-    padding: 20px;
-    border-radius: 8px;
-    margin-top: 20px;
-    text-align: center;
-    font-weight: 600;
+        const card = `
+            <article class="news-card">
+                <img src="${img}" alt="News Image" class="card-img">
+                <div class="card-body">
+                    <span class="card-date">${date}</span>
+                    <h3 class="card-title">${article.title}</h3>
+                    <p class="card-desc">${article.description || "Click 'Read Full Story' for more details."}</p>
+                    <a href="${article.url}" target="_blank" class="btn">Read Full Story</a>
+                </div>
+            </article>
+        `;
+        newsGrid.innerHTML += card;
+    });
 }
 
-@media(min-width: 768px) {
-    .header-content { flex-direction: row; justify-content: space-between; }
+function filterNews(query) {
+    const term = query.toLowerCase();
+    const filtered = currentArticles.filter(article => 
+        article.title.toLowerCase().includes(term) || 
+        (article.description && article.description.toLowerCase().includes(term))
+    );
+    renderNews(filtered);
+}
+
+function showLoading(isLoading) {
+    if (isLoading) {
+        loadingState.classList.remove('hidden');
+        newsGrid.classList.add('hidden');
+    } else {
+        loadingState.classList.add('hidden');
+        newsGrid.classList.remove('hidden');
+    }
+}
+
+function showError(message) {
+    loadingState.classList.add('hidden');
+    newsGrid.classList.add('hidden');
+    errorState.textContent = message;
+    errorState.classList.remove('hidden');
 }
