@@ -10,26 +10,28 @@ const noResults = document.getElementById('noResults');
 let currentArticles = [];
 
 document.addEventListener('DOMContentLoaded', () => {
-    fetchNews('general');
+    fetchNews('Philippines News');
 });
 
 searchInput.addEventListener('input', (e) => filterNews(e.target.value));
 categorySelect.addEventListener('change', (e) => fetchNews(e.target.value));
 
-async function fetchNews(category) {
+async function fetchNews(query) {
     showLoading(true);
     errorState.classList.add('hidden');
 
-    const url = `https://gnews.io/api/v4/top-headlines?category=${category}&lang=en&country=ph&apikey=${API_KEY}`;
+   
+    const timestamp = new Date().getTime();
+    const url = `https://gnews.io/api/v4/search?q=${query}&lang=en&sortby=publishedAt&apikey=${API_KEY}&_=${timestamp}`;
 
     try {
         const response = await fetch(url);
         
         if (response.status === 403) {
-            throw new Error("API Key Invalid or Limit Reached");
+            throw new Error("API Limit Reached. Please wait a moment and refresh.");
         }
         if (response.status === 429) {
-            throw new Error("Too Many Requests");
+            throw new Error("Too many requests. Please wait 1 minute.");
         }
         if (!response.ok) {
             throw new Error(`Server Error: ${response.status}`);
