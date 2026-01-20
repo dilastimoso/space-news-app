@@ -1,4 +1,4 @@
-const API_KEY = '1e50933ed1437b06ba9abbbfeefeedf8';
+const API_KEY = 'pub_d3e9ccadf00442e7b9531799a5d8bdc2';
 
 const newsGrid = document.getElementById('newsGrid');
 const loadingState = document.getElementById('loadingState');
@@ -10,7 +10,7 @@ const noResults = document.getElementById('noResults');
 let currentArticles = [];
 
 document.addEventListener('DOMContentLoaded', () => {
-    fetchNews('general');
+    fetchNews('top');
 });
 
 searchInput.addEventListener('input', (e) => filterNews(e.target.value));
@@ -20,18 +20,16 @@ async function fetchNews(category) {
     showLoading(true);
     errorState.classList.add('hidden');
 
-    // Switched to 'top-headlines' which is more stable for the Free Tier
-    // Added 'country=ph' to get local Philippines news as requested
-    const url = `https://gnews.io/api/v4/top-headlines?category=${category.toLowerCase()}&lang=en&country=ph&apikey=${API_KEY}`;
+    const url = `https://newsdata.io/api/1/news?apikey=${API_KEY}&country=ph&language=en&prioritydomain=top&domainurl=news.abs-cbn.com&category=${category}`;
 
     try {
         const response = await fetch(url);
         
-        if (response.status === 403) {
-            throw new Error("Plan Limit Reached or CORS blocked. Please upgrade plan.");
+        if (response.status === 401 || response.status === 403) {
+            throw new Error("Invalid API Key or Limit Reached.");
         }
         if (response.status === 429) {
-            throw new Error("Too many requests. Please wait 1 minute.");
+            throw new Error("Too many requests. Please wait.");
         }
         if (!response.ok) {
             throw new Error(`Server Error: ${response.status}`);
@@ -39,14 +37,13 @@ async function fetchNews(category) {
 
         const data = await response.json();
         
-        // Hide loading immediately after data is received
         showLoading(false);
 
-        if (!data.articles) {
-            throw new Error("No articles data found");
+        if (!data.results) {
+            throw new Error("No articles found.");
         }
 
-        currentArticles = data.articles;
+        currentArticles = data.results;
         renderNews(currentArticles);
 
     } catch (error) {
@@ -66,11 +63,11 @@ function renderNews(articles) {
     }
 
     articles.forEach(article => {
-        const img = article.image || 'https://via.placeholder.com/400x200?text=No+Image+Available';
-        const date = new Date(article.publishedAt).toLocaleDateString();
+        const img = article.image_url || 'https://via.placeholder.com/400x200?text=No+Image+Available';
+        const date = article.pubDate ? new Date(article.pubDate).toLocaleDateString() : 'Recent';
         const title = article.title || "No Title";
         const desc = article.description || "Click 'Read Full Story' for more details.";
-        const url = article.url || "#";
+        const url = article.link || "#";
 
         const card = `
             <article class="news-card">
