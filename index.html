@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Global Brief | Real-Time News</title>
+    <title>Global Brief | US Headlines</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
@@ -21,6 +21,8 @@
                     <option value="business">Business</option>
                     <option value="sports">Sports</option>
                     <option value="entertainment">Entertainment</option>
+                    <option value="health">Health</option>
+                    <option value="science">Science</option>
                 </select>
                 <input type="text" id="searchInput" placeholder="Search headlines...">
             </div>
@@ -30,14 +32,14 @@
     <main class="container">
         <div id="loadingState" class="loading">
             <div class="spinner"></div>
-            <p>Fetching live news...</p>
+            <p>Fetching news...</p>
         </div>
 
         <div id="errorState" class="error-box hidden"></div>
 
         <section>
             <div id="newsGrid" class="news-grid hidden"></div>
-            <div id="noResults" class="hidden">No stories found matching your search.</div>
+            <div id="noResults" class="hidden">No stories found.</div>
         </section>
     </main>
 
