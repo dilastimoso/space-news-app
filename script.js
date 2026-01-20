@@ -10,7 +10,8 @@ const noResults = document.getElementById('noResults');
 let currentArticles = [];
 
 document.addEventListener('DOMContentLoaded', () => {
-    fetchNews('top');
+
+    fetchNews('');
 });
 
 searchInput.addEventListener('input', (e) => filterNews(e.target.value));
@@ -20,7 +21,11 @@ async function fetchNews(category) {
     showLoading(true);
     errorState.classList.add('hidden');
 
-    const url = `https://newsdata.io/api/1/news?apikey=${API_KEY}&country=ph&language=en&category=${category}`;
+    let url = `https://newsdata.io/api/1/news?apikey=${API_KEY}&country=ph&language=en`;
+    
+    if (category && category !== '') {
+        url += `&category=${category}`;
+    }
 
     try {
         const response = await fetch(url);
@@ -42,8 +47,11 @@ async function fetchNews(category) {
         
         showLoading(false);
 
-        if (!data.results) {
-            throw new Error("No articles found.");
+        // Handle case where API works but returns 0 results
+        if (!data.results || data.results.length === 0) {
+             currentArticles = [];
+             renderNews([]);
+             return;
         }
 
         currentArticles = data.results;
